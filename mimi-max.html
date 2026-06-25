@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mimi & Max – Vom Limonadenstand zum Unternehmen</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #1a1a2e; --panel: #16213e; --accent: #f7c59f;
+  --green: #4ecdc4; --red: #ff6b6b; --yellow: #ffe66d;
+  --text: #e0e0e0; --muted: #888; --border: #2a2a4a;
+  --card: #0f3460; --story-bg: #1e1e3a;
+}
+body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+/* ── SCREEN SYSTEM ── */
+.screen { display: none; }
+.screen.active { display: flex; }
+
+/* ── TITLE SCREEN ── */
+#screen-title {
+  flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100vh; text-align: center; padding: 2rem;
+  background: radial-gradient(ellipse at 50% 40%, #0f3460 0%, #1a1a2e 70%);
+}
+#screen-title .logo { font-size: 4rem; margin-bottom: 0.5rem; }
+#screen-title h1 { font-size: 2.2rem; color: var(--accent); margin-bottom: 0.3rem; }
+#screen-title .subtitle { color: var(--muted); margin-bottom: 2.5rem; font-size: 1.1rem; }
+#screen-title .chars { display: flex; gap: 3rem; justify-content: center; margin-bottom: 2.5rem; }
+.char-card { background: var(--card); border-radius: 1rem; padding: 1.2rem 1.5rem; width: 140px; text-align: center; border: 1px solid var(--border); }
+.char-card .avatar { font-size: 2.5rem; margin-bottom: 0.4rem; }
+.char-card strong { color: var(--accent); display: block; margin-bottom: 0.3rem; }
+.char-card span { font-size: 0.8rem; color: var(--muted); }
+.btn { background: var(--accent); color: #1a1a2e; border: none; padding: 0.9rem 2.5rem; border-radius: 2rem; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: transform 0.1s, opacity 0.2s; }
+.btn:hover { transform: scale(1.04); }
+.btn:active { transform: scale(0.97); }
+.btn-secondary { background: transparent; color: var(--accent); border: 2px solid var(--accent); }
+
+/* ── MAIN GAME LAYOUT ── */
+#screen-game {
+  flex-direction: row; min-height: 100vh;
+}
+#sidebar {
+  width: 240px; min-width: 240px; background: var(--panel); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; padding: 1rem; gap: 0.7rem; overflow-y: auto;
+}
+#sidebar .logo-small { font-size: 1.4rem; font-weight: 700; color: var(--accent); text-align: center; padding-bottom: 0.7rem; border-bottom: 1px solid var(--border); margin-bottom: 0.3rem; }
+.kpi-box { background: var(--card); border-radius: 0.6rem; padding: 0.6rem 0.8rem; }
+.kpi-box .kpi-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.kpi-box .kpi-val { font-size: 1.3rem; font-weight: 700; color: var(--green); }
+.kpi-box .kpi-val.red { color: var(--red); }
+.kpi-box .kpi-val.yellow { color: var(--yellow); }
+.chapter-list { flex: 1; overflow-y: auto; }
+.chapter-list .part-header { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding: 0.5rem 0.2rem 0.2rem; }
+.ch-item { padding: 0.4rem 0.6rem; border-radius: 0.4rem; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; color: var(--muted); transition: background 0.15s; }
+.ch-item:hover { background: var(--border); color: var(--text); }
+.ch-item.active { background: var(--accent); color: #1a1a2e; font-weight: 600; }
+.ch-item.done { color: var(--green); }
+.ch-item.done::before { content: '✓'; font-size: 0.7rem; }
+.ch-item.locked { opacity: 0.35; cursor: default; }
+.ch-item.locked:hover { background: transparent; }
+
+/* ── MAIN CONTENT ── */
+#main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+#tab-bar { display: flex; border-bottom: 1px solid var(--border); background: var(--panel); }
+.tab { padding: 0.7rem 1.2rem; font-size: 0.85rem; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; transition: all 0.15s; }
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+#content-area { flex: 1; overflow-y: auto; padding: 1.5rem; }
+
+/* ── STORY VIEW ── */
+#view-story { display: flex; flex-direction: column; gap: 1rem; }
+.story-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; }
+.story-header .ch-badge { background: var(--accent); color: #1a1a2e; font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 1rem; }
+.story-header h2 { font-size: 1.4rem; color: var(--accent); }
+.dialog-box { background: var(--story-bg); border-radius: 0.8rem; padding: 1.2rem; border-left: 4px solid var(--accent); min-height: 80px; font-size: 1rem; line-height: 1.6; }
+.dialog-box .speaker { font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.4rem; }
+.dialog-box .speaker.mimi { color: #f472b6; }
+.dialog-box .speaker.max { color: #60a5fa; }
+.dialog-box .speaker.mama { color: var(--green); }
+.dialog-box p { line-height: 1.65; }
+
+.choices { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.5rem; }
+.choice-btn { background: var(--card); border: 2px solid var(--border); color: var(--text); border-radius: 0.6rem; padding: 0.9rem 1.2rem; text-align: left; cursor: pointer; font-size: 0.95rem; transition: all 0.15s; }
+.choice-btn:hover { border-color: var(--accent); color: var(--accent); }
+.choice-btn.selected { border-color: var(--green); background: rgba(78,205,196,0.1); color: var(--green); }
+.choice-btn.wrong { border-color: var(--red); background: rgba(255,107,107,0.1); color: var(--red); }
+
+.btn-next { margin-top: 1rem; align-self: flex-start; }
+.btn-small { padding: 0.5rem 1.2rem; font-size: 0.9rem; border-radius: 1.5rem; }
+
+/* ── LEARN CARD ── */
+.learn-card { background: linear-gradient(135deg, #0f3460, #1a1a4a); border: 1px solid var(--accent); border-radius: 1rem; padding: 1.5rem; }
+.learn-card .learn-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+.learn-card h3 { color: var(--accent); font-size: 1.2rem; margin-bottom: 0.7rem; }
+.learn-card .formula { background: rgba(247,197,159,0.1); border: 1px solid rgba(247,197,159,0.3); border-radius: 0.5rem; padding: 0.8rem 1rem; font-family: monospace; font-size: 1rem; margin: 0.7rem 0; color: var(--yellow); }
+.learn-card p { line-height: 1.65; color: #ccc; font-size: 0.95rem; }
+
+.result-box { background: var(--story-bg); border-radius: 0.8rem; padding: 1.2rem; margin-top: 0.5rem; }
+.result-box h4 { color: var(--yellow); margin-bottom: 0.6rem; font-size: 1rem; }
+.result-box table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.result-box td { padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--border); }
+.result-box td:last-child { text-align: right; font-weight: 600; }
+.result-box .total td { color: var(--green); border-top: 2px solid var(--green); }
+.result-box .loss td { color: var(--red); }
+
+/* ── DASHBOARD ── */
+#view-dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.dash-card { background: var(--card); border-radius: 0.8rem; padding: 1.2rem; }
+.dash-card h4 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.8rem; }
+.dash-stat { display: flex; justify-content: space-between; align-items: center; padding: 0.35rem 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+.dash-stat:last-child { border-bottom: none; }
+.dash-stat .val { font-weight: 700; color: var(--green); }
+.dash-stat .val.red { color: var(--red); }
+
+/* ── BUCHHALTUNG ── */
+#view-buchh { display: flex; flex-direction: column; gap: 1rem; }
+.buchh-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.buchh-table th { background: var(--card); padding: 0.6rem 0.8rem; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+.buchh-table td { padding: 0.5rem 0.8rem; border-bottom: 1px solid var(--border); }
+.buchh-table tr:hover td { background: var(--story-bg); }
+.buchh-table .debit { color: var(--green); }
+.buchh-table .credit { color: var(--red); }
+.tag { display: inline-block; font-size: 0.7rem; padding: 0.1rem 0.4rem; border-radius: 0.3rem; font-weight: 600; }
+.tag.einnahme { background: rgba(78,205,196,0.2); color: var(--green); }
+.tag.ausgabe { background: rgba(255,107,107,0.2); color: var(--red); }
+
+/* ── LAGER ── */
+#view-lager { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
+.lager-item { background: var(--card); border-radius: 0.8rem; padding: 1rem; text-align: center; }
+.lager-item .icon { font-size: 2.2rem; margin-bottom: 0.5rem; }
+.lager-item .name { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.3rem; }
+.lager-item .qty { font-size: 1.4rem; font-weight: 700; color: var(--accent); }
+.lager-item .unit { font-size: 0.75rem; color: var(--muted); }
+
+/* ── NOTIFICATION ── */
+#notif { position: fixed; top: 1rem; right: 1rem; z-index: 999; display: flex; flex-direction: column; gap: 0.5rem; }
+.notif-item { background: var(--card); border-left: 4px solid var(--green); border-radius: 0.5rem; padding: 0.7rem 1rem; font-size: 0.85rem; max-width: 280px; animation: slideIn 0.3s ease; }
+.notif-item.warn { border-left-color: var(--yellow); }
+.notif-item.bad { border-left-color: var(--red); }
+@keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* ── CHAPTER COMPLETE ── */
+.chapter-complete { background: linear-gradient(135deg, #0f3460, #1a4a2e); border: 2px solid var(--green); border-radius: 1rem; padding: 2rem; text-align: center; }
+.chapter-complete .big-icon { font-size: 3.5rem; margin-bottom: 0.5rem; }
+.chapter-complete h3 { color: var(--green); font-size: 1.5rem; margin-bottom: 0.5rem; }
+.chapter-complete p { color: #ccc; margin-bottom: 1.5rem; }
+.chapter-complete .xp-bar { background: var(--border); border-radius: 1rem; height: 8px; overflow: hidden; margin: 1rem 0; }
+.chapter-complete .xp-fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--accent)); border-radius: 1rem; transition: width 1s ease; }
+
+/* ── MISC ── */
+.divider { border: none; border-top: 1px solid var(--border); margin: 0.5rem 0; }
+.flex-row { display: flex; gap: 0.7rem; align-items: center; flex-wrap: wrap; }
+.badge { display: inline-block; background: var(--card); border: 1px solid var(--border); border-radius: 0.4rem; padding: 0.2rem 0.6rem; font-size: 0.75rem; color: var(--muted); }
+.badge.unlocked { border-color: var(--green); color: var(--green); background: rgba(78,205,196,0.1); }
+h2.section-title { font-size: 1.1rem; color: var(--accent); margin-bottom: 0.8rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); }
+.progress-bar-wrap { background: var(--border); border-radius: 1rem; height: 6px; overflow: hidden; margin: 0.3rem 0 0.6rem; }
+.progress-bar-fill { height: 100%; background: var(--accent); border-radius: 1rem; transition: width 0.4s ease; }
+</style>
+</head>
+<body>
+
+<!-- TITLE SCREEN -->
+<div id="screen-title" class="screen active">
+  <div class="logo">🍋</div>
+  <h1>Mimi &amp; Max</h1>
+  <p class="subtitle">Vom Limonadenstand zum Unternehmen</p>
+  <div class="chars">
+    <div class="char-card">
+      <div class="avatar">👧</div>
+      <strong>Mimi</strong>
+      <span>Analytisch &amp; zahlenliebend</span>
+    </div>
+    <div class="char-card">
+      <div class="avatar">🧒</div>
+      <strong>Max</strong>
+      <span>Kreativ &amp; marketingbegeistert</span>
+    </div>
+    <div class="char-card">
+      <div class="avatar">👩</div>
+      <strong>Mama</strong>
+      <span>Unternehmerin &amp; Mentorin</span>
+    </div>
+  </div>
+  <button class="btn" onclick="startGame()">🎮 Spiel starten</button>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="screen-game" class="screen">
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <div class="logo-small">🍋 Mimi &amp; Max</div>
+    <div class="kpi-box">
+      <div class="kpi-label">💰 Kassa</div>
+      <div class="kpi-val" id="kpi-kassa">0,00 €</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-label">📈 Umsatz gesamt</div>
+      <div class="kpi-val yellow" id="kpi-umsatz">0,00 €</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-label">✨ Gewinn gesamt</div>
+      <div class="kpi-val" id="kpi-gewinn">0,00 €</div>
+    </div>
+    <hr class="divider">
+    <div class="chapter-list" id="chapter-list"></div>
+    <hr class="divider">
+    <div style="font-size:0.75rem; color:var(--muted); text-align:center; padding:0.3rem;">
+      Kapitel <span id="progress-current">1</span> / 32
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-bar" style="width:3%"></div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div id="main">
+    <div id="tab-bar">
+      <div class="tab active" onclick="switchTab('story')">📖 Story</div>
+      <div class="tab" onclick="switchTab('dashboard')">📊 Unternehmen</div>
+      <div class="tab" onclick="switchTab('buchh')">📒 Buchhaltung</div>
+      <div class="tab" onclick="switchTab('lager')">📦 Lager</div>
+    </div>
+    <div id="content-area">
+      <div id="view-story"></div>
+      <div id="view-dashboard" style="display:none"></div>
+      <div id="view-buchh" style="display:none"></div>
+      <div id="view-lager" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<div id="notif"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// GAME STATE
+// ═══════════════════════════════════════════════
+const G = {
+  kassa: 10,
+  bank: 0,
+  umsatz: 10,
+  gewinn: 0,
+  forderungen: 0,
+  verbindlichkeiten: 0,
+  lager: { zitronen: 0, zucker: 0, limo: 0 },
+  anlagen: [],
+  mitarbeiter: [],
+  kredite: [],
+  buchungen: [],
+  currentChapter: 0,
+  completedChapters: [],
+  storyStep: 0,
+  choiceMade: null,
+  badges: [],
+};
+
+function fmt(n) { return n.toFixed(2).replace('.', ',') + ' €'; }
+
+function notify(msg, type='') {
+  const d = document.createElement('div');
+  d.className = 'notif-item ' + type;
+  d.textContent = msg;
+  document.getElementById('notif').appendChild(d);
+  setTimeout(() => d.remove(), 3000);
+}
+
+function addBuchung(datum, text, art, betrag) {
+  G.buchungen.push({ datum, text, art, betrag });
+}
+
+function updateKPIs() {
+  document.getElementById('kpi-kassa').textContent = fmt(G.kassa);
+  document.getElementById('kpi-umsatz').textContent = fmt(G.umsatz);
+  const gEl = document.getElementById('kpi-gewinn');
+  gEl.textContent = fmt(G.gewinn);
+  gEl.className = 'kpi-val' + (G.gewinn < 0 ? ' red' : '');
+  const pct = Math.round((G.currentChapter / 32) * 100);
+  document.getElementById('progress-bar').style.width = Math.max(3, pct) + '%';
+  document.getElementById('progress-current').textContent = G.currentChapter + 1;
+}
+
+// ═══════════════════════════════════════════════
+// CHAPTERS DATA
+// ═══════════════════════════════════════════════
+const PARTS = [
+  { title: 'Teil 1: Die ersten Unternehmer', chapters: [0,1,2,3,4] },
+  { title: 'Teil 2: Ordnung im Chaos', chapters: [5,6,7] },
+  { title: 'Teil 3: Das echte Unternehmen', chapters: [8,9,10] },
+  { title: 'Teil 4: Kunden & Lieferanten', chapters: [11,12,13,14] },
+  { title: 'Teil 5: Die Firma wächst', chapters: [15,16,17,18] },
+  { title: 'Teil 6: Die Limonaden GmbH', chapters: [19,20,21] },
+  { title: 'Teil 7: Zahlen verstehen', chapters: [22,23,24,25,26] },
+  { title: 'Teil 8: Das große Finale', chapters: [27,28,29,30,31] },
+];
+
+const CHAPTERS = [
+// ─── 0: Kapitel 1 ───
+{
+  title: 'Kapitel 1: Die 10 Euro',
+  badge: '💡 Umsatz ≠ Gewinn',
+  steps: [
+    { type:'dialog', speaker:'max', text:'Mimi! Wir haben heute 10 Gläser Limonade für je 1 Euro verkauft. Wir haben 10 Euro Gewinn gemacht! 🎉' },
+    { type:'dialog', speaker:'mimi', text:'10 Euro Einnahmen. Aber... warte mal. Haben wir wirklich 10 Euro Gewinn?' },
+    { type:'dialog', speaker:'mama', text:'Moment mal, ihr zwei. Wisst ihr eigentlich, was der Unterschied zwischen Umsatz und Gewinn ist?' },
+    { type:'choice', question:'Was glaubst du: Haben Mimi und Max wirklich 10 Euro Gewinn gemacht?', options:[
+      { text:'Ja! 10 Gläser × 1 Euro = 10 Euro Gewinn!', correct: false, feedback:'Fast – aber dabei vergisst du die Kosten für die Zutaten.' },
+      { text:'Nein! Zuerst müssen wir die Kosten abziehen.', correct: true, feedback:'Genau! Umsatz ist nicht gleich Gewinn. Kosten müssen erst abgezogen werden.' },
+      { text:'Ich weiß es nicht.', correct: false, feedback:'Tipp: Denk an die Zutaten, die sie kaufen mussten.' },
+    ]},
+    { type:'learn', icon:'💡', title:'Umsatz ≠ Gewinn', content:'<b>Umsatz</b> ist alles, was du einnimmst – also das Geld, das Kunden bezahlen.<br><br><b>Gewinn</b> ist das, was wirklich übrig bleibt – nachdem du alle Kosten abgezogen hast.',
+      formula:'Gewinn = Umsatz − Kosten' },
+    { type:'result', title:'Die erste Erkenntnis', rows:[
+      ['Umsatz (10 Gläser × 1,00 €)', '10,00 €'],
+      ['Kosten (noch unbekannt)', '??? €'],
+    ], note:'Im nächsten Kapitel entdecken Mimi und Max ihre wirklichen Kosten.' },
+  ],
+  onComplete: () => {
+    notify('💡 Erkenntnis: Umsatz ≠ Gewinn');
+    G.badges.push('💡 Umsatz ≠ Gewinn');
+  }
+},
+// ─── 1: Kapitel 2 ───
+{
+  title: 'Kapitel 2: Der Supermarkt-Schock',
+  badge: '🧾 Kosten & Gewinn',
+  steps: [
+    { type:'dialog', speaker:'mimi', text:'Okay, lass uns nachrechnen. Mama, wir haben für die Zutaten bezahlt – aber wie viel genau?' },
+    { type:'dialog', speaker:'mama', text:'Schaut mal auf den Kassenzettel. Zitronen, Zucker und Wasser für 10 Portionen haben euch 6 Euro gekostet.' },
+    { type:'dialog', speaker:'max', text:'Waaas?! Dann haben wir ja nur 4 Euro verdient?' },
+    { type:'choice', question:'Wie hoch ist der Gewinn bei einem Umsatz von 10 € und Kosten von 6 €?', options:[
+      { text:'10 Euro', correct:false, feedback:'Das wäre der Umsatz, nicht der Gewinn.' },
+      { text:'4 Euro', correct:true, feedback:'Richtig! 10 € − 6 € = 4 € Gewinn.' },
+      { text:'6 Euro', correct:false, feedback:'6 Euro sind die Kosten. Versuch nochmal: Umsatz minus Kosten.' },
+    ]},
+    { type:'learn', icon:'🧾', title:'Kosten & Gewinn', content:'<b>Kosten</b> sind alle Ausgaben, die für das Unternehmen nötig sind – zum Beispiel Zutaten, Miete oder Strom.<br><br>Erst wenn du die Kosten vom Umsatz abziehst, kennst du deinen echten <b>Gewinn</b>.',
+      formula:'Gewinn = 10,00 € − 6,00 € = 4,00 €' },
+    { type:'result', title:'Abrechnung nach Kapitel 2', rows:[
+      ['Umsatz', '10,00 €'],
+      ['Zutaten (Zitronen, Zucker, Wasser)', '−6,00 €'],
+    ], total: ['Gewinn', '4,00 €'] },
+  ],
+  onComplete: () => {
+    G.kassa = 4;
+    G.gewinn = 4;
+    addBuchung('Tag 1', 'Verkauf 10 Gläser Limonade', 'einnahme', 10);
+    addBuchung('Tag 1', 'Zutaten Einkauf', 'ausgabe', -6);
+    updateKPIs();
+    notify('Kassa aktualisiert: ' + fmt(G.kassa));
+  }
+},
+// ─── 2: Kapitel 3 ───
+{
+  title: 'Kapitel 3: Der richtige Preis',
+  badge: '🧮 Kalkulation',
+  steps: [
+    { type:'dialog', speaker:'max', text:'Wenn wir mehr verdienen wollen, müssen wir einfach mehr Gläser verkaufen!' },
+    { type:'dialog', speaker:'mimi', text:'Oder wir erhöhen den Preis. Aber wie viel darf ein Glas kosten?' },
+    { type:'dialog', speaker:'mama', text:'Erst müsst ihr wissen, was ein Glas euch kostet – das nennt man Selbstkosten. Dann könnt ihr einen sinnvollen Preis berechnen.' },
+    { type:'dialog', speaker:'mimi', text:'Also: Ein Glas kostet uns 0,60 €. Wenn wir 50 Cent Gewinn wollen, müssen wir es für...' },
+    { type:'choice', question:'Die Selbstkosten pro Glas sind 0,60 €. Mimi will 50 Cent Gewinn pro Glas. Welcher Preis ist richtig?', options:[
+      { text:'0,60 €', correct:false, feedback:'Das wäre kein Gewinn – nur die Kosten gedeckt.' },
+      { text:'1,10 €', correct:true, feedback:'Perfekt! 0,60 € + 0,50 € = 1,10 € Verkaufspreis.' },
+      { text:'1,50 €', correct:false, feedback:'Möglich, aber die Aufgabe sagt: genau 0,50 € Gewinn. Also 0,60 + 0,50 = 1,10 €.' },
+    ]},
+    { type:'learn', icon:'🧮', title:'Kalkulation & Selbstkosten', content:'<b>Selbstkosten</b> sind alle Kosten, die entstehen um ein Produkt herzustellen.<br><br>Der <b>Verkaufspreis</b> muss mindestens die Selbstkosten decken – und idealer Weise noch einen <b>Gewinnaufschlag</b> enthalten.',
+      formula:'Verkaufspreis = Selbstkosten + Gewinnaufschlag' },
+    { type:'result', title:'Kalkulation Glas Limonade', rows:[
+      ['Materialkosten (Zitronen, Zucker, Wasser)', '0,40 €'],
+      ['Anteilige sonstige Kosten', '0,20 €'],
+      ['Selbstkosten gesamt', '0,60 €'],
+      ['Gewinnaufschlag', '0,50 €'],
+    ], total: ['Verkaufspreis', '1,10 €'] },
+  ],
+  onComplete: () => {
+    notify('🧮 Kalkulation gelernt! Neuer Preis: 1,10 €/Glas');
+    G.badges.push('🧮 Kalkulation');
+  }
+},
+// ─── 3: Kapitel 4 ───
+{
+  title: 'Kapitel 4: Die Tischmiete',
+  badge: '📌 Fix- & Variable Kosten',
+  steps: [
+    { type:'dialog', speaker:'max', text:'Super! Wir verkaufen heute zu 1,10 Euro. Ich bin gespannt, wie viel wir verdienen!' },
+    { type:'dialog', speaker:'mama', text:'Gute Neuigkeit: Der Nachbar erlaubt euch, seinen Gartentisch zu nutzen. Schlechte Neuigkeit: Er möchte dafür 2 Euro pro Tag.' },
+    { type:'dialog', speaker:'max', text:'2 Euro?! Egal ob wir viel oder wenig verkaufen?' },
+    { type:'dialog', speaker:'mama', text:'Genau. Das nennt man eine Fixkosten – sie fallen immer an, unabhängig vom Umsatz.' },
+    { type:'choice', question:'Mimi und Max verkaufen heute nur 3 Gläser (statt 10). Die Tischmiete kostet 2 € – egal wie viele Gläser. Was sind Fixkosten?', options:[
+      { text:'Kosten, die mit dem Umsatz steigen.', correct:false, feedback:'Das wären variable Kosten, z. B. Zutaten pro Glas.' },
+      { text:'Kosten, die immer gleich bleiben – egal wie viel verkauft wird.', correct:true, feedback:'Genau! Die Tischmiete ist 2 €, egal ob 1 oder 100 Gläser verkauft werden.' },
+      { text:'Kosten, die man selber festlegen kann.', correct:false, feedback:'Nicht ganz. Fixkosten sind fix = unveränderlich.' },
+    ]},
+    { type:'learn', icon:'📌', title:'Fix- und variable Kosten', content:'<b>Fixkosten</b> bleiben gleich – egal wie viel du produzierst oder verkaufst. Beispiele: Miete, Versicherung, Löhne.<br><br><b>Variable Kosten</b> steigen mit der Produktion. Beispiele: Zutaten, Verpackung, Strom für die Produktion.',
+      formula:'Gesamtkosten = Fixkosten + variable Kosten' },
+    { type:'result', title:'Heute: 5 Gläser verkauft', rows:[
+      ['Umsatz (5 × 1,10 €)', '5,50 €'],
+      ['Variable Kosten (5 × 0,40 €)', '−2,00 €'],
+      ['Fixkosten (Tischmiete)', '−2,00 €'],
+    ], total: ['Gewinn heute', '1,50 €'] },
+  ],
+  onComplete: () => {
+    G.kassa += 1.50;
+    G.umsatz += 5.50;
+    G.gewinn += 1.50;
+    addBuchung('Tag 2', 'Verkauf 5 Gläser (1,10 €)', 'einnahme', 5.50);
+    addBuchung('Tag 2', 'Zutaten (variable)', 'ausgabe', -2.00);
+    addBuchung('Tag 2', 'Tischmiete (Fixkosten)', 'ausgabe', -2.00);
+    updateKPIs();
+    notify('📌 Fix- & Variabelkosten gelernt!');
+    G.badges.push('📌 Fixkosten');
+  }
+},
+// ─── 4: Kapitel 5 ───
+{
+  title: 'Kapitel 5: Das geliehene Geld',
+  badge: '🏦 EK & FK',
+  steps: [
+    { type:'dialog', speaker:'max', text:'Mimi, wenn wir mehr Zutaten kaufen, können wir 50 Gläser am Tag verkaufen! Aber wir haben nicht genug Geld...' },
+    { type:'dialog', speaker:'mimi', text:'Wir bräuchten 20 Euro zum Einkaufen. Wir haben nur 5,50 Euro gespart.' },
+    { type:'dialog', speaker:'mama', text:'Es gibt zwei Möglichkeiten: Ihr verwendet euer eigenes Geld – das ist Eigenkapital. Oder ihr leiht euch Geld – das nennt man Fremdkapital. Aber geliehenes Geld kostet etwas: Zinsen.' },
+    { type:'choice', question:'Mimi und Max leihen sich 15 € von Oma. Sie zahlen 10% Zinsen. Wie viel müssen sie zurückzahlen?', options:[
+      { text:'15,00 €', correct:false, feedback:'Das wäre ohne Zinsen. Zinsen = 10% von 15 € = 1,50 €.' },
+      { text:'16,50 €', correct:true, feedback:'Richtig! 15 € + 10% Zinsen (1,50 €) = 16,50 €.' },
+      { text:'25,00 €', correct:false, feedback:'Zu viel. 10% von 15 € = 1,50 €. Also 15 + 1,50 = 16,50 €.' },
+    ]},
+    { type:'learn', icon:'🏦', title:'Eigenkapital, Fremdkapital & Zinsen', content:'<b>Eigenkapital</b> ist das Geld, das dir selbst gehört – deine Ersparnisse oder dein Startkapital.<br><br><b>Fremdkapital</b> ist geliehenes Geld (z. B. Bankkredit, Darlehen). Es muss zurückgezahlt werden.<br><br><b>Zinsen</b> sind der Preis fürs Leihen von Geld.',
+      formula:'Rückzahlung = Kredit + (Kredit × Zinssatz)' },
+    { type:'result', title:'Finanzierung der Erweiterung', rows:[
+      ['Eigenkapital (eigenes Geld)', '5,50 €'],
+      ['Fremdkapital (Kredit von Oma)', '15,00 €'],
+      ['Verfügbares Kapital', '20,50 €'],
+      ['Zinsen (10 %)', '−1,50 €'],
+    ], total: ['Netto verfügbar', '19,00 €'] },
+  ],
+  onComplete: () => {
+    G.kassa += 15;
+    G.bank = 0;
+    G.kredite.push({ name: 'Kredit Oma', betrag: 15, zins: 10 });
+    G.verbindlichkeiten += 16.50;
+    addBuchung('Tag 3', 'Kredit von Oma', 'einnahme', 15);
+    updateKPIs();
+    notify('🏦 Kredit aufgenommen: 15 €');
+    G.badges.push('🏦 Eigenkapital & Fremdkapital');
+  }
+},
+// ─── 5: Kapitel 6 ───
+{
+  title: 'Kapitel 6: Das verschwundene Geld',
+  badge: '🔍 Kontrolle',
+  steps: [
+    { type:'dialog', speaker:'max', text:'Mimi, wo ist unser Geld? Ich dachte wir hätten 50 Euro?' },
+    { type:'dialog', speaker:'mimi', text:'Ich zähle nach... es fehlen mehrere Euro. Irgendwas stimmt nicht.' },
+    { type:'dialog', speaker:'mama', text:'Habt ihr irgendwo aufgeschrieben, was ihr eingenommen und ausgegeben habt?' },
+    { type:'dialog', speaker:'max', text:'Ähm... nein. Wir haben einfach gezahlt und kassiert.' },
+    { type:'dialog', speaker:'mama', text:'Ohne Aufzeichnungen werdet ihr nie wissen, wo euer Geld hingeht. Das ist der Grund, warum Unternehmen Bücher führen.' },
+    { type:'choice', question:'Was ist der wichtigste Grund, Einnahmen und Ausgaben aufzuschreiben?', options:[
+      { text:'Damit man beim Finanzamt keine Probleme bekommt.', correct:false, feedback:'Das ist ein Grund, aber nicht der wichtigste hier.' },
+      { text:'Damit man weiß, wo das Geld hingeht und Fehler findet.', correct:true, feedback:'Genau! Aufzeichnungen helfen, den Überblick zu behalten.' },
+      { text:'Damit man Freunden zeigen kann, wie viel man verdient.', correct:false, feedback:'Nicht ganz der Sinn der Buchhaltung.' },
+    ]},
+    { type:'learn', icon:'🔍', title:'Warum Aufzeichnungen wichtig sind', content:'Ohne schriftliche Aufzeichnungen verliert man schnell den Überblick. Man weiß nicht mehr:<br>• Wie viel man eingenommen hat<br>• Wofür man wie viel ausgegeben hat<br>• Ob man überhaupt Gewinn macht<br><br>Deshalb führen alle Unternehmen eine <b>Buchhaltung</b>.',
+      formula:'Kein Geld verlieren = Alles aufschreiben' },
+  ],
+  onComplete: () => { notify('🔍 Wichtige Lektion: Alles aufschreiben!'); }
+},
+// ─── 6: Kapitel 7 ───
+{
+  title: 'Kapitel 7: Das Kassenbuch',
+  badge: '📒 EAR',
+  steps: [
+    { type:'dialog', speaker:'mama', text:'Gut, fangen wir mit dem Einfachsten an: einer Einnahmen-Ausgaben-Rechnung. Ihr schreibt einfach auf, was reinkommt und was rausgeht.' },
+    { type:'dialog', speaker:'mimi', text:'Also wie eine Tabelle mit zwei Spalten: Einnahmen und Ausgaben?' },
+    { type:'dialog', speaker:'mama', text:'Genau! Das nennt man auch Kassenbuch. Jede Zeile ist ein Vorgang – mit Datum, Beschreibung und Betrag.' },
+    { type:'choice', question:'Mimi kauft Zitronen für 3 €. Wohin kommt das ins Kassenbuch?', options:[
+      { text:'Einnahmen-Spalte', correct:false, feedback:'Einkäufe sind Ausgaben, nicht Einnahmen.' },
+      { text:'Ausgaben-Spalte', correct:true, feedback:'Richtig! Einkäufe = Ausgaben.' },
+      { text:'Gar nicht eintragen', correct:false, feedback:'Jede Zahlung muss eingetragen werden!' },
+    ]},
+    { type:'learn', icon:'📒', title:'Einnahmen-Ausgaben-Rechnung (EAR)', content:'Die einfachste Form der Buchhaltung: Man listet alle <b>Einnahmen</b> und alle <b>Ausgaben</b> auf.<br><br>Am Ende rechnet man: Einnahmen − Ausgaben = Überschuss (oder Verlust)',
+      formula:'Überschuss = Einnahmen − Ausgaben' },
+  ],
+  onComplete: () => {
+    notify('📒 Kassenbuch eingeführt!');
+    G.badges.push('📒 EAR');
+  }
+},
+// ─── 7: Kapitel 8 ───
+{
+  title: 'Kapitel 8: Der Belegkarton',
+  badge: '🗂️ Belegwesen',
+  steps: [
+    { type:'dialog', speaker:'mama', text:'Was ist das?! Zerknitterte Supermarktzettel, verlorene Rechnungen und Notizzettel überall!' },
+    { type:'dialog', speaker:'max', text:'Wir haben halt aufgehoben, was wir gefunden haben...' },
+    { type:'dialog', speaker:'mama', text:'Ohne Belege kann niemand beweisen, was ihr ausgegeben habt. Das Finanzamt, Banken – alle verlangen Belege. Keine Buchung ohne Beleg!' },
+    { type:'choice', question:'Wofür braucht man Belege?', options:[
+      { text:'Nur für das Finanzamt.', correct:false, feedback:'Auch für eigene Kontrolle, Banken, Revision, etc.' },
+      { text:'Um alle Einnahmen und Ausgaben beweisen zu können.', correct:true, feedback:'Richtig! Belege sind der Beweis für jede Zahlung.' },
+      { text:'Belege sind freiwillig.', correct:false, feedback:'Nein! Gesetzliche Aufbewahrungspflicht!' },
+    ]},
+    { type:'learn', icon:'🗂️', title:'Belegwesen', content:'Ein <b>Beleg</b> ist ein schriftlicher Nachweis für eine Zahlung oder einen Geschäftsfall. Beispiele:<br>• Kassenbon / Quittung<br>• Rechnung<br>• Kontoauszug<br><br><b>Grundregel:</b> Keine Buchung ohne Beleg! Belege müssen <b>7 Jahre</b> aufbewahrt werden.',
+      formula:'Keine Buchung ohne Beleg!' },
+  ],
+  onComplete: () => { notify('🗂️ Belegordner angelegt!'); G.badges.push('🗂️ Belegwesen'); }
+},
+// ─── 8: Kapitel 9 ───
+{
+  title: 'Kapitel 9: Die doppelte Buchhaltung',
+  badge: '⚖️ Doppelte Buchführung',
+  steps: [
+    { type:'dialog', speaker:'mama', text:'Ihr kennt jetzt die einfache Buchführung. Echte Unternehmen verwenden die doppelte Buchhaltung.' },
+    { type:'dialog', speaker:'mimi', text:'Doppelt? Was bedeutet das?' },
+    { type:'dialog', speaker:'mama', text:'Stell dir zwei Sparschweine vor. Eines zeigt dein Vermögen, das andere zeigt, woher das Geld kommt. Jede Bewegung betrifft immer beide.' },
+    { type:'choice', question:'Ihr kauft Zitronen für 5 € bar. Was passiert bei der doppelten Buchführung?', options:[
+      { text:'Nur Kassa sinkt um 5 €.', correct:false, feedback:'Bei doppelter Buchführung gibt es immer ZWEI Konten.' },
+      { text:'Warenkonto steigt, Kassekonto sinkt – jeweils um 5 €.', correct:true, feedback:'Genau! Jede Buchung hat zwei Seiten: Soll und Haben.' },
+      { text:'Beide Konten steigen um 5 €.', correct:false, feedback:'Nein – Geld wird umgeteilt, nicht verdoppelt.' },
+    ]},
+    { type:'learn', icon:'⚖️', title:'Doppelte Buchführung', content:'Bei der doppelten Buchführung wird jeder Geschäftsfall auf <b>zwei Konten</b> gebucht:<br>• Auf einem Konto im <b>Soll</b> (links)<br>• Auf einem anderen Konto im <b>Haben</b> (rechts)<br><br>Soll und Haben müssen immer gleich groß sein.',
+      formula:'Soll = Haben (immer!)' },
+  ],
+  onComplete: () => { notify('⚖️ Doppelte Buchführung verstanden!'); G.badges.push('⚖️ Doppelte Buchführung'); }
+},
+// ─── 9: Kapitel 10 ───
+{
+  title: 'Kapitel 10: Die Eröffnungsbilanz',
+  badge: '📊 Bilanz',
+  steps: [
+    { type:'dialog', speaker:'mama', text:'Vor dem neuen Geschäftsjahr müssen wir festhalten, was ihr besitzt und was ihr schuldet.' },
+    { type:'dialog', speaker:'mimi', text:'Wir haben: Kassa, unseren alten Kühlschrank und Zutaten auf Lager.' },
+    { type:'dialog', speaker:'mama', text:'Das sind eure Vermögenswerte – die linke Seite der Bilanz. Rechts steht, woher das Geld dafür kommt: eigenes Kapital oder Schulden.' },
+    { type:'choice', question:'Was gehört auf die linke Seite (Aktiva) der Bilanz?', options:[
+      { text:'Schulden und Kredite', correct:false, feedback:'Schulden stehen auf der rechten Seite (Passiva).' },
+      { text:'Alles, was das Unternehmen besitzt: Geld, Waren, Maschinen.', correct:true, feedback:'Richtig! Aktiva = Vermögen des Unternehmens.' },
+      { text:'Nur Bargeld', correct:false, feedback:'Aktiva umfasst alles Vermögen – auch Maschinen, Waren, Forderungen.' },
+    ]},
+    { type:'learn', icon:'📊', title:'Die Eröffnungsbilanz', content:'Die Bilanz ist eine Momentaufnahme des Unternehmens. Sie zeigt:<br><br><b>Aktiva (links):</b> Was besitzt das Unternehmen?<br>• Kassa, Bank, Lager, Maschinen<br><br><b>Passiva (rechts):</b> Woher kommt das Kapital?<br>• Eigenkapital, Kredite (Verbindlichkeiten)<br><br>Aktiva = Passiva (immer!)',
+      formula:'Aktiva = Passiva' },
+    { type:'result', title:'Eure Eröffnungsbilanz', rows:[
+      ['AKTIVA', ''],
+      ['Kassa', fmt(G.kassa)],
+      ['Lager (Zutaten)', '3,00 €'],
+      ['PASSIVA', ''],
+      ['Eigenkapital', fmt(G.kassa - 16.50 + 3)],
+      ['Verbindlichkeiten (Kredit Oma)', '16,50 €'],
+    ]},
+  ],
+  onComplete: () => { notify('📊 Erste Bilanz erstellt!'); G.badges.push('📊 Bilanz'); }
+},
+// ─── 10: Kapitel 11 ───
+{
+  title: 'Kapitel 11: Der Kühlschrank',
+  badge: '🧊 Abschreibung',
+  steps: [
+    { type:'dialog', speaker:'max', text:'Wir brauchen einen Kühlschrank für die Limonade! Der kostet 100 Euro.' },
+    { type:'dialog', speaker:'mama', text:'Ein Kühlschrank ist eine Investition. Er nutzt sich über Jahre ab. Deshalb wird er nicht sofort als Kosten verbucht, sondern über mehrere Jahre abgeschrieben.' },
+    { type:'choice', question:'Der Kühlschrank kostet 100 € und hält 5 Jahre. Wie hoch ist die jährliche Abschreibung?', options:[
+      { text:'100 €', correct:false, feedback:'Das wäre die Gesamtkosten, nicht pro Jahr.' },
+      { text:'20 €', correct:true, feedback:'Richtig! 100 € ÷ 5 Jahre = 20 € pro Jahr.' },
+      { text:'5 €', correct:false, feedback:'5 € wären 100 ÷ 20 Jahre – zu wenig.' },
+    ]},
+    { type:'learn', icon:'🧊', title:'Anlagevermögen & Abschreibung (AfA)', content:'Maschinen, Geräte und Fahrzeuge nutzen sich über Zeit ab. Diese <b>Abschreibung (AfA)</b> verteilt die Kosten auf die Nutzungsdauer.<br><br>Beispiel: Kühlschrank 100 €, 5 Jahre → 20 €/Jahr.',
+      formula:'AfA pro Jahr = Anschaffungskosten ÷ Nutzungsdauer' },
+  ],
+  onComplete: () => {
+    G.anlagen.push({ name: 'Kühlschrank', wert: 100, nutzung: 5, afa: 20 });
+    G.kassa -= 100;
+    addBuchung('Monat 2', 'Kauf Kühlschrank', 'ausgabe', -100);
+    updateKPIs();
+    notify('🧊 Kühlschrank gekauft! Abschreibung: 20 €/Jahr');
+    G.badges.push('🧊 Abschreibung (AfA)');
+  }
+},
+// ─── 11: Kapitel 12 ───
+{
+  title: 'Kapitel 12: Die erste Rechnung',
+  badge: '📄 Forderungen',
+  steps: [
+    { type:'dialog', speaker:'max', text:'Der Fußballverein will 100 Gläser Limonade! Aber er zahlt erst in 14 Tagen.' },
+    { type:'dialog', speaker:'mimi', text:'Wir müssen also eine Rechnung schreiben. Aber was muss da drauf stehen?' },
+    { type:'choice', question:'Was ist eine Forderung in der Buchhaltung?', options:[
+      { text:'Geld das wir schulden.', correct:false, feedback:'Das wären Verbindlichkeiten.' },
+      { text:'Geld, das uns ein Kunde noch schuldet.', correct:true, feedback:'Richtig! Forderungen = Geld, das noch nicht bezahlt wurde.' },
+      { text:'Unser Bargeld in der Kassa.', correct:false, feedback:'Bargeld ist Kasse, keine Forderung.' },
+    ]},
+    { type:'learn', icon:'📄', title:'Forderungen & Rechnungen', content:'Wenn du etwas lieferst, aber noch kein Geld bekommst, entsteht eine <b>Forderung</b>. Die Rechnung ist der Nachweis dafür.<br><br>Eine Rechnung muss enthalten:<br>• Rechnungsdatum & Nummer<br>• Empfänger & Absender<br>• Leistungsbeschreibung<br>• Betrag & Zahlungsziel',
+      formula:'Forderung → Zahlung → Forderung erlischt' },
+  ],
+  onComplete: () => {
+    G.forderungen += 110;
+    G.umsatz += 110;
+    addBuchung('Monat 3', 'Rechnung Fußballverein (100 Gläser)', 'einnahme', 110);
+    updateKPIs();
+    notify('📄 Erste Rechnung gestellt: 110 €');
+    G.badges.push('📄 Forderungen & Rechnungen');
+  }
+},
+// ─── 12: Kapitel 13 ───
+{
+  title: 'Kapitel 13: Rabatt oder Skonto?',
+  badge: '💸 Preisnachlässe',
+  steps: [
+    { type:'dialog', speaker:'max', text:'Unser Lieferant bietet uns 10 % Rabatt ODER 2 % Skonto bei Zahlung innerhalb von 5 Tagen. Was ist besser?' },
+    { type:'dialog', speaker:'mimi', text:'Ich muss nachrechnen. Rabatt ist ein direkter Preisnachlass. Skonto ist ein Nachlass fürs schnelle Zahlen.' },
+    { type:'choice', question:'Rechnung 100 €. Rabatt 10 % = 90 €. Oder Skonto 2 % bei schneller Zahlung = 98 €. Was ist günstiger?', options:[
+      { text:'Rabatt: 10 % Nachlass → 90 €', correct:true, feedback:'Richtig! 10 % Rabatt spart mehr (10 €) als 2 % Skonto (2 €).' },
+      { text:'Skonto: 2 % Nachlass → 98 €', correct:false, feedback:'2 % Skonto = nur 2 € gespart. 10 % Rabatt = 10 € gespart.' },
+    ]},
+    { type:'learn', icon:'💸', title:'Rabatt & Skonto', content:'<b>Rabatt</b>: Sofortiger Preisnachlass (z. B. Mengenrabatt, Treuerabatt).<br><br><b>Skonto</b>: Nachlass bei besonders schneller Zahlung. Ziel: Liquidität sichern.<br><br>Beide werden als Erlösminderung gebucht.',
+      formula:'Nettobetrag = Listenpreis − Rabatt − Skonto' },
+  ],
+  onComplete: () => { notify('💸 Rabatt vs. Skonto verstanden!'); G.badges.push('💸 Rabatt & Skonto'); }
+},
+// ─── 13: Kapitel 14 ───
+{
+  title: 'Kapitel 14: Die Umsatzsteuer-Falle',
+  badge: '🏛️ USt & Vorsteuer',
+  steps: [
+    { type:'dialog', speaker:'mama', text:'Von den 1,10 € pro Glas – gehört euch eigentlich nicht alles davon.' },
+    { type:'dialog', speaker:'max', text:'Was?! Wem gehört denn das Geld sonst?' },
+    { type:'dialog', speaker:'mama', text:'Dem Staat. Auf jeden Verkauf müsst ihr Umsatzsteuer abführen. In Österreich sind das meistens 20 %.' },
+    { type:'dialog', speaker:'mimi', text:'Aber wenn wir einkaufen, zahlen wir auch Steuer – können wir die abziehen?' },
+    { type:'dialog', speaker:'mama', text:'Genau! Das nennt man Vorsteuer. Die Zahllast ist der Unterschied.' },
+    { type:'choice', question:'Ihr verkauft für 100 € (inkl. 20 % USt) und habt 30 € Vorsteuer. Wie hoch ist die Zahllast ans Finanzamt?', options:[
+      { text:'20 €', correct:false, feedback:'Umsatzsteuer aus 100 € sind: 100/1,2 × 0,2 = ~16,67 €. Minus 30 € Vorsteuer → Erstattung.' },
+      { text:'Der Staat erstattet uns Geld.', correct:true, feedback:'Richtig! 16,67 € USt − 30 € Vorsteuer = Erstattung von 13,33 €.' },
+      { text:'50 €', correct:false, feedback:'Zu viel. 20 % von 100 € (brutto) sind nur ~16,67 € USt.' },
+    ]},
+    { type:'learn', icon:'🏛️', title:'Umsatzsteuer & Vorsteuer', content:'<b>Umsatzsteuer (USt)</b>: Ihr kassiert sie vom Kunden und zahlt sie an den Staat.<br><br><b>Vorsteuer (VSt)</b>: Die Steuer, die ihr beim Einkauf bezahlt – ihr holt sie vom Staat zurück.<br><br><b>Zahllast</b> = USt − Vorsteuer',
+      formula:'Zahllast = Umsatzsteuer − Vorsteuer' },
+  ],
+  onComplete: () => { notify('🏛️ USt & Vorsteuer verstanden!'); G.badges.push('🏛️ Umsatzsteuer'); }
+},
+// ─── 14: Kapitel 15 ───
+{
+  title: 'Kapitel 15: Die Zitronenmesse',
+  badge: '✈️ Reisekosten',
+  steps: [
+    { type:'dialog', speaker:'mimi', text:'Ich fahre zur großen Zitronenmesse! Dort lerne ich neue Lieferanten kennen.' },
+    { type:'dialog', speaker:'max', text:'Vergiss nicht die Belege für alles – Zug, Hotel, Essen!' },
+    { type:'learn', icon:'✈️', title:'Reisekosten & Spesenabrechnung', content:'Berufliche Reisen sind Betriebsausgaben. Dazu zählen:<br>• Fahrtkosten (Zug, Auto)<br>• Übernachtung<br>• Verpflegungspauschale (Diäten)<br><br>Alle Kosten müssen mit Belegen nachgewiesen werden.',
+      formula:'Reisekosten = Fahrt + Unterkunft + Verpflegung' },
+    { type:'result', title:'Spesenabrechnung Zitronenmesse', rows:[
+      ['Zugticket (Hin & Rück)', '28,00 €'],
+      ['Hotel (1 Nacht)', '45,00 €'],
+      ['Verpflegungspauschale', '12,00 €'],
+    ], total: ['Gesamte Reisekosten', '85,00 €'] },
+  ],
+  onComplete: () => {
+    addBuchung('Monat 4', 'Reisekosten Zitronenmesse', 'ausgabe', -85);
+    G.kassa -= 85;
+    updateKPIs();
+    notify('✈️ Reisekosten verbucht: 85 €');
+    G.badges.push('✈️ Reisekosten');
+  }
+},
+// ─── 15: Kapitel 16 ───
+{
+  title: 'Kapitel 16: Konkurrenz!',
+  badge: '📣 Marketing',
+  steps: [
+    { type:'dialog', speaker:'max', text:'Oh nein! Gegenüber hat jemand einen neuen Limonadenstand aufgemacht. Und er verkauft billiger!' },
+    { type:'dialog', speaker:'mimi', text:'Wir müssen uns etwas einfallen lassen. Was machen wir besser?' },
+    { type:'choice', question:'Was ist die beste Reaktion auf Konkurrenz?', options:[
+      { text:'Einfach auch günstiger werden.', correct:false, feedback:'Ein Preiskampf schadet oft allen. Besser: USPs herausarbeiten.' },
+      { text:'Unsere Stärken hervorheben und Kunden gezielt ansprechen.', correct:true, feedback:'Richtig! Marketing bedeutet, den eigenen Wert zu kommunizieren.' },
+      { text:'Den Stand schließen.', correct:false, feedback:'Zu früh aufgeben wäre schade!' },
+    ]},
+    { type:'learn', icon:'📣', title:'Marketing & Marktanalyse', content:'<b>Marketing</b> bedeutet, die richtigen Kunden mit dem richtigen Angebot zu erreichen.<br><br>Wichtige Fragen:<br>• Wer sind meine Kunden?<br>• Was macht mich besser als die Konkurrenz?<br>• Wie erreiche ich neue Kunden?',
+      formula:'Erfolg = Richtiges Produkt + Richtiger Preis + Richtige Werbung' },
+  ],
+  onComplete: () => { notify('📣 Marketing-Strategie entwickelt!'); G.badges.push('📣 Marketing'); }
+},
+// ─── 16: Kapitel 17 ───
+{
+  title: 'Kapitel 17: Sophie wird Mitarbeiterin',
+  badge: '👥 Personal',
+  steps: [
+    { type:'dialog', speaker:'max', text:'Wir können nicht mehr alles alleine machen! Wir brauchen Hilfe.' },
+    { type:'dialog', speaker:'mimi', text:'Ich habe Sophie gefragt. Sie möchte bei uns arbeiten. Aber jetzt müssen wir einen Vertrag machen und ihr Gehalt ausrechnen.' },
+    { type:'dialog', speaker:'mama', text:'Wenn ihr jemanden einstellt, werdet ihr Arbeitgeber. Das bringt Pflichten mit sich.' },
+    { type:'learn', icon:'👥', title:'Mitarbeiter einstellen', content:'Als Arbeitgeber musst du:<br>• Einen <b>Arbeitsvertrag</b> abschließen<br>• Das Gehalt vereinbaren (Bruttolohn)<br>• Sozialversicherungsbeiträge abführen<br>• Lohnsteuer abziehen<br><br>Der Mitarbeiter bekommt weniger als vereinbart – das nennt man <b>Nettolohn</b>.',
+      formula:'Nettolohn = Bruttolohn − Abzüge (SV + LSt)' },
+  ],
+  onComplete: () => {
+    G.mitarbeiter.push({ name: 'Sophie', brutto: 100, netto: 78 });
+    notify('👥 Sophie eingestellt!');
+    G.badges.push('👥 Personal');
+  }
+},
+// ─── 17: Kapitel 18 ───
+{
+  title: 'Kapitel 18: Der erste Lohnzettel',
+  badge: '💰 Personalverrechnung',
+  steps: [
+    { type:'dialog', speaker:'max', text:'Sophie bekommt 100 Euro brutto. Aber auf dem Lohnzettel steht viel weniger...' },
+    { type:'dialog', speaker:'mimi', text:'Sozialversicherung und Lohnsteuer werden abgezogen. Sophie bekommt 78 Euro netto.' },
+    { type:'choice', question:'Sophie verdient 100 € brutto. SV-Beitrag: 15 %, Lohnsteuer: 7 %. Wie viel Netto bekommt sie?', options:[
+      { text:'78 €', correct:true, feedback:'Richtig! 100 − 15 (SV) − 7 (LSt) = 78 € netto.' },
+      { text:'85 €', correct:false, feedback:'Du hast die Lohnsteuer vergessen. 100 − 15 − 7 = 78 €.' },
+      { text:'100 €', correct:false, feedback:'Brutto ≠ Netto. Abzüge: 15 % SV + 7 % LSt = 22 €.' },
+    ]},
+    { type:'learn', icon:'💰', title:'Personalverrechnung', content:'<b>Bruttolohn</b>: Das vereinbarte Gehalt vor Abzügen.<br><br><b>Abzüge des Arbeitnehmers:</b><br>• Sozialversicherung (ca. 18 %)<br>• Lohnsteuer (variabel)<br><br><b>Nettolohn</b>: Was tatsächlich aufs Konto kommt.',
+      formula:'Netto = Brutto − SV-Beitrag AN − Lohnsteuer' },
+    { type:'result', title:'Sophies Lohnzettel', rows:[
+      ['Bruttolohn', '100,00 €'],
+      ['Sozialversicherung (15 %)', '−15,00 €'],
+      ['Lohnsteuer (7 %)', '−7,00 €'],
+    ], total: ['Nettolohn', '78,00 €'] },
+  ],
+  onComplete: () => {
+    G.kassa -= 100;
+    addBuchung('Monat 5', 'Lohn Sophie (Brutto)', 'ausgabe', -100);
+    updateKPIs();
+    notify('💰 Erster Lohnzettel abgerechnet!');
+    G.badges.push('💰 Lohnverrechnung');
+  }
+},
+// ─── 18: Kapitel 19 ───
+{
+  title: 'Kapitel 19: Die Überraschung für Unternehmer',
+  badge: '😱 Lohnnebenkosten',
+  steps: [
+    { type:'dialog', speaker:'mama', text:'Ihr glaubt, Sophie kostet euch 100 Euro. Aber als Arbeitgeber müsst ihr auch noch Abgaben zahlen!' },
+    { type:'dialog', speaker:'max', text:'Was?! Wir zahlen mehr als ihr Gehalt?' },
+    { type:'dialog', speaker:'mama', text:'Ja. Das nennt man Dienstgeberabgaben oder Lohnnebenkosten. In Österreich ca. 30 % extra.' },
+    { type:'choice', question:'Sophie kostet 100 € Bruttolohn. Dazu kommen 30 % Dienstgeberabgaben. Wie viel kostet sie euch wirklich?', options:[
+      { text:'100 €', correct:false, feedback:'Vergiss die Dienstgeberabgaben!' },
+      { text:'130 €', correct:true, feedback:'Richtig! 100 + 30 % = 130 € Gesamtkosten.' },
+      { text:'78 €', correct:false, feedback:'78 € ist Sophies Nettolohn – ihr als Arbeitgeber zahlt mehr.' },
+    ]},
+    { type:'learn', icon:'😱', title:'Dienstgeberabgaben & Lohnnebenkosten', content:'Als Arbeitgeber zahlst du neben dem Bruttolohn noch zusätzliche Abgaben:<br>• Sozialversicherung Arbeitgeberanteil (~21 %)<br>• Dienstgeberbeitrag (DB)<br>• Zuschlag zum DB<br>• Kommunalsteuer<br><br>Gesamte Lohnnebenkosten: ca. 30 % auf Brutto.',
+      formula:'Gesamtkosten = Brutto + Dienstgeberabgaben (~30 %)' },
+    { type:'result', title:'Gesamtkosten für Sophie', rows:[
+      ['Bruttolohn Sophie', '100,00 €'],
+      ['Dienstgeberabgaben (30 %)', '30,00 €'],
+    ], total: ['Gesamtkosten Arbeitgeber', '130,00 €'] },
+  ],
+  onComplete: () => {
+    addBuchung('Monat 5', 'Dienstgeberabgaben Sophie', 'ausgabe', -30);
+    G.kassa -= 30;
+    updateKPIs();
+    notify('😱 Lohnnebenkosten: 30 € extra!');
+    G.badges.push('😱 Lohnnebenkosten');
+  }
+},
+// ─── 19: Kapitel 20 ───
+{
+  title: 'Kapitel 20: Die Mutter verlangt Steuern',
+  badge: '🏛️ Unternehmensteuern',
+  steps: [
+    { type:'dialog', speaker:'mama', text:'Gratulation – ihr macht richtig Gewinn! Aber das Finanzamt will seinen Anteil: Körperschaftsteuer oder Einkommensteuer.' },
+    { type:'learn', icon:'🏛️', title:'Unternehmenssteuern', content:'Je nach Unternehmensform zahlst du verschiedene Steuern:<br>• <b>Einkommensteuer</b>: für Einzelunternehmer und Personengesellschaften<br>• <b>Körperschaftsteuer (KöSt)</b>: für GmbH und AG (25 % in Österreich)<br><br>Basis ist immer der Gewinn (Einkommen).',
+      formula:'Steuer = Gewinn × Steuersatz' },
+  ],
+  onComplete: () => { notify('🏛️ Unternehmensteuern erklärt!'); G.badges.push('🏛️ Unternehmensteuern'); }
+},
+// ─── 20: Kapitel 21 ───
+{
+  title: 'Kapitel 21: Die Gründung der GmbH',
+  badge: '🏢 GmbH',
+  steps: [
+    { type:'dialog', speaker:'mimi', text:'Wenn wir weiter wachsen wollen, sollten wir eine GmbH gründen. Dann haften wir nicht mehr mit unserem privaten Geld.' },
+    { type:'dialog', speaker:'max', text:'Klingt gut! Was brauchen wir dafür?' },
+    { type:'learn', icon:'🏢', title:'Die GmbH (Gesellschaft mit beschränkter Haftung)', content:'Bei einer <b>GmbH</b> haften die Gesellschafter nur mit ihrer Einlage – nicht mit dem Privatvermögen.<br><br>In Österreich braucht man mindestens <b>10.000 €</b> Stammkapital (die Hälfte muss eingezahlt werden).<br><br>Vorteile: Haftungsbeschränkung, Glaubwürdigkeit, Steuervorteile bei höheren Gewinnen.',
+      formula:'Mindest-Stammkapital GmbH (AT): 10.000 €' },
+  ],
+  onComplete: () => { notify('🏢 Limonaden GmbH gegründet!'); G.badges.push('🏢 GmbH'); }
+},
+// ─── 21: Kapitel 22 ───
+{
+  title: 'Kapitel 22: Das Unternehmen vis-à-vis',
+  badge: '🤝 Unternehmenskauf',
+  steps: [
+    { type:'dialog', speaker:'max', text:'Der Konkurrent gegenüber will sein Geschäft verkaufen. Sollen wir es kaufen?' },
+    { type:'dialog', speaker:'mimi', text:'Wir müssen zuerst prüfen: Was ist das Unternehmen wirklich wert? Schauen wir uns Bilanz und Gewinn an.' },
+    { type:'learn', icon:'🤝', title:'Unternehmenskauf & Bewertung', content:'Beim Kauf eines Unternehmens prüft man:<br>• <b>Substanzwert</b>: Was gehört dem Unternehmen (Maschinen, Lager)?<br>• <b>Ertragswert</b>: Wie viel Gewinn wirft es ab?<br>• <b>Goodwill</b>: Wert von Marke, Kundenstamm, Ruf<br><br>Kaufpreis = Substanzwert + Goodwill',
+      formula:'Unternehmenswert = Substanz + Ertragswert + Goodwill' },
+  ],
+  onComplete: () => { notify('🤝 Unternehmenskauf analysiert!'); G.badges.push('🤝 Unternehmenskauf'); }
+},
+// ─── 22: Kapitel 23 ───
+{
+  title: 'Kapitel 23: Wohin verschwindet der Gewinn?',
+  badge: '🔬 Kostenanalyse',
+  steps: [
+    { type:'dialog', speaker:'max', text:'Wir verkaufen so viel – aber am Monatsende bleibt kaum etwas übrig. Warum?' },
+    { type:'dialog', speaker:'mimi', text:'Wir müssen unsere Kosten genau analysieren. Welche Kosten sind eigentlich die größten?' },
+    { type:'learn', icon:'🔬', title:'Kostenanalyse', content:'Oft merkt man erst bei genauer Analyse, wo das Geld hingeht. Typische Kostenfresser:<br>• Zu hohe Fixkosten (Miete)<br>• Ineffizienter Einkauf<br>• Zu viel Personal<br>• Versteckte Kosten (Zinsen, Abschreibungen)<br><br>Lösung: Kosten nach Art, Ort und Produkt aufschlüsseln.',
+      formula:'Gewinn↑ = Umsatz↑ ODER Kosten↓' },
+  ],
+  onComplete: () => { notify('🔬 Kostenanalyse gestartet!'); }
+},
+// ─── 23: Kapitel 24 ───
+{
+  title: 'Kapitel 24: Die Kostenarten-Rechnung',
+  badge: '📋 Kostenartenrechnung',
+  steps: [
+    { type:'dialog', speaker:'mimi', text:'Ich sortiere alle Kosten nach Typ. Materialkosten, Personalkosten, Energiekosten, Werbekosten...' },
+    { type:'learn', icon:'📋', title:'Kostenartenrechnung', content:'Die Kostenartenrechnung beantwortet: <b>Was kostet uns wie viel?</b><br><br>Kostenarten:<br>• <b>Materialkosten</b>: Rohstoffe, Waren<br>• <b>Personalkosten</b>: Löhne, Gehälter<br>• <b>Energiekosten</b>: Strom, Wasser<br>• <b>Abschreibungen</b>: Wertverlust Anlagen<br>• <b>Kapitalkosten</b>: Zinsen',
+      formula:'Gesamtkosten = Σ aller Kostenarten' },
+    { type:'result', title:'Kostenübersicht letzter Monat', rows:[
+      ['Materialkosten (Zutaten)', '120,00 €'],
+      ['Personalkosten (Sophie)', '130,00 €'],
+      ['Miete & Fixkosten', '60,00 €'],
+      ['Abschreibungen', '20,00 €'],
+      ['Sonstiges', '15,00 €'],
+    ], total: ['Gesamtkosten', '345,00 €'] },
+  ],
+  onComplete: () => { notify('📋 Kostenarten erkannt!'); G.badges.push('📋 Kostenartenrechnung'); }
+},
+// ─── 24: Kapitel 25 ───
+{
+  title: 'Kapitel 25: Der Laden und der Stand',
+  badge: '📍 Kostenstellenrechnung',
+  steps: [
+    { type:'dialog', speaker:'max', text:'Wir haben jetzt den Straßenstand UND einen kleinen Laden. Welcher verdient mehr?' },
+    { type:'dialog', speaker:'mimi', text:'Dafür müssen wir die Kosten auf die zwei Standorte aufteilen – das nennt man Kostenstellenrechnung.' },
+    { type:'learn', icon:'📍', title:'Kostenstellenrechnung', content:'Die Kostenstellenrechnung beantwortet: <b>Wo entstehen die Kosten?</b><br><br>Kostenstellen sind Bereiche im Unternehmen:<br>• Straßenstand<br>• Laden<br>• Verwaltung<br><br>Durch die Aufteilung erkennt man, welcher Bereich rentabel ist.',
+      formula:'Kosten pro Stelle → Effizienz messen' },
+    { type:'result', title:'Kostenstellenvergleich', rows:[
+      ['Umsatz Straßenstand', '300,00 €'],
+      ['Kosten Straßenstand', '−180,00 €'],
+      ['Ergebnis Straßenstand', '120,00 €'],
+      ['Umsatz Laden', '500,00 €'],
+      ['Kosten Laden', '−380,00 €'],
+      ['Ergebnis Laden', '120,00 €'],
+    ]},
+  ],
+  onComplete: () => { notify('📍 Kostenstellen verglichen!'); G.badges.push('📍 Kostenstellenrechnung'); }
+},
+// ─── 25: Kapitel 26 ───
+{
+  title: 'Kapitel 26: Erdbeer oder Zitrone?',
+  badge: '🍓 Deckungsbeitrag',
+  steps: [
+    { type:'dialog', speaker:'max', text:'Wir verkaufen jetzt Erdbeer- UND Zitronenlimonade. Welche Sorte bringt wirklich mehr Geld?' },
+    { type:'dialog', speaker:'mimi', text:'Ich rechne den Deckungsbeitrag aus. Das zeigt, welches Produkt nach Abzug der variablen Kosten am meisten beisteuert.' },
+    { type:'choice', question:'Zitronenlimo: Preis 1,20 €, variable Kosten 0,50 €. Erdbeerlimo: Preis 1,50 €, variable Kosten 0,90 €. Welche hat den höheren Deckungsbeitrag?', options:[
+      { text:'Zitronenlimo (DB = 0,70 €)', correct:true, feedback:'Richtig! Zitrone: 1,20 − 0,50 = 0,70 €. Erdbeere: 1,50 − 0,90 = 0,60 €.' },
+      { text:'Erdbeerlimo (DB = 0,60 €)', correct:false, feedback:'Erdbeere hat höheren Preis, aber auch höhere Kosten. DB Zitrone: 0,70 €, DB Erdbeere: 0,60 €.' },
+    ]},
+    { type:'learn', icon:'🍓', title:'Deckungsbeitrag & Kostenträgerrechnung', content:'Der <b>Deckungsbeitrag (DB)</b> zeigt, wie viel jedes Produkt nach Abzug der variablen Kosten zum Gewinn beiträgt.<br><br><b>Selbstkosten</b> = alle Kosten pro Stück (fixe + variable)',
+      formula:'DB = Verkaufspreis − variable Kosten' },
+  ],
+  onComplete: () => { notify('🍓 Deckungsbeitrag berechnet!'); G.badges.push('🍓 Deckungsbeitrag'); }
+},
+// ─── 26: Kapitel 27 ───
+{
+  title: 'Kapitel 27: Das Unternehmer-Cockpit',
+  badge: '🎛️ Controlling',
+  steps: [
+    { type:'dialog', speaker:'mimi', text:'Ich habe ein Dashboard gebaut! Damit sehe ich sofort, wie das Unternehmen läuft.' },
+    { type:'dialog', speaker:'max', text:'Wow, da sind so viele Zahlen. Was bedeuten die alle?' },
+    { type:'learn', icon:'🎛️', title:'Kennzahlen & Controlling', content:'<b>Controlling</b> bedeutet, das Unternehmen mit Zahlen steuern.<br><br>Wichtige Kennzahlen:<br>• <b>Gewinnquote</b> = Gewinn ÷ Umsatz × 100<br>• <b>Personalkostenquote</b> = Personalkosten ÷ Umsatz × 100<br>• <b>Liquidität</b> = kurzfristige Mittel ÷ kurzfristige Schulden',
+      formula:'Gewinnquote = Gewinn / Umsatz × 100 %' },
+  ],
+  onComplete: () => { notify('🎛️ Controlling-Cockpit aktiviert!'); G.badges.push('🎛️ Controlling'); }
+},
+// ─── 27: Kapitel 28 ───
+{
+  title: 'Kapitel 28: Das Jahresende',
+  badge: '📅 Abschlussbuchungen',
+  steps: [
+    { type:'dialog', speaker:'mama', text:'Das erste Geschäftsjahr neigt sich dem Ende. Jetzt müssen alle Bücher abgeschlossen werden.' },
+    { type:'learn', icon:'📅', title:'Abschlussbuchungen', content:'Am Jahresende werden alle <b>Erfolgskonten</b> (Erträge und Aufwendungen) abgeschlossen und ihr Saldo ins <b>Gewinn-/Verlustkonto</b> übertragen.<br><br>Danach wird die Schlussbilanz erstellt.',
+      formula:'Erfolgskonten → Gewinn/Verlust → Eigenkapital' },
+  ],
+  onComplete: () => { notify('📅 Jahresabschluss eingeleitet!'); G.badges.push('📅 Jahresabschluss'); }
+},
+// ─── 28: Kapitel 29 ───
+{
+  title: 'Kapitel 29: Die Gewinn- und Verlustrechnung',
+  badge: '📑 GuV',
+  steps: [
+    { type:'dialog', speaker:'mimi', text:'Jetzt sehen wir zum ersten Mal schwarz auf weiß: Wie viel haben wir wirklich verdient?' },
+    { type:'learn', icon:'📑', title:'Gewinn- und Verlustrechnung (GuV)', content:'Die GuV zeigt alle <b>Erträge</b> (Einnahmen) und alle <b>Aufwendungen</b> (Kosten) des Geschäftsjahres.<br><br>Das Ergebnis ist der Jahresgewinn oder -verlust.',
+      formula:'Gewinn = Erträge − Aufwendungen' },
+    { type:'result', title:'GuV – Erstes Geschäftsjahr', rows:[
+      ['Umsatzerlöse', fmt(G.umsatz)],
+      ['Materialaufwand', '−180,00 €'],
+      ['Personalaufwand', '−260,00 €'],
+      ['Abschreibungen', '−20,00 €'],
+      ['Sonstige Aufwendungen', '−85,00 €'],
+    ], total: ['Jahresgewinn/-verlust', fmt(G.umsatz - 180 - 260 - 20 - 85)] },
+  ],
+  onComplete: () => { notify('📑 GuV erstellt!'); G.badges.push('📑 GuV'); }
+},
+// ─── 29: Kapitel 30 ───
+{
+  title: 'Kapitel 30: Die große Bilanz',
+  badge: '⚖️ Jahresbilanz',
+  steps: [
+    { type:'dialog', speaker:'mimi', text:'Die Bilanz ist wie ein Foto unseres Unternehmens – an einem einzigen Tag.' },
+    { type:'dialog', speaker:'max', text:'Ich sehe alles: was wir haben, was wir schulden und was uns gehört!' },
+    { type:'learn', icon:'⚖️', title:'Die Jahresbilanz', content:'Die <b>Bilanz</b> zeigt das Vermögen und die Kapitalstruktur an einem Stichtag.<br><br><b>Aktiva:</b> Kassa, Bank, Kühlschrank, Laden<br><b>Passiva:</b> Eigenkapital, Kredite<br><br>Die Bilanz ist die wichtigste Aussage über den Zustand eines Unternehmens.',
+      formula:'Aktiva = Passiva (immer!)' },
+    { type:'result', title:'Jahresbilanz (vereinfacht)', rows:[
+      ['AKTIVA', ''],
+      ['Kassa', fmt(Math.max(0, G.kassa))],
+      ['Anlagevermögen (Kühlschrank)', '80,00 €'],
+      ['Forderungen', fmt(G.forderungen)],
+      ['PASSIVA', ''],
+      ['Eigenkapital', '120,00 €'],
+      ['Verbindlichkeiten', fmt(G.verbindlichkeiten)],
+    ]},
+  ],
+  onComplete: () => { notify('⚖️ Jahresbilanz fertig!'); G.badges.push('⚖️ Jahresbilanz'); }
+},
+// ─── 30: Kapitel 31 ───
+{
+  title: 'Kapitel 31: Die Zeitreise der Rechnungen',
+  badge: '📆 Rechnungsabgrenzung',
+  steps: [
+    { type:'dialog', speaker:'mimi', text:'Am 31. Dezember haben wir noch offene Rechnungen und vorausbezahlte Mieten. Was machen wir damit?' },
+    { type:'learn', icon:'📆', title:'Rechnungsabgrenzung (RAP)', content:'Manchmal passen Zahlung und Leistung nicht im gleichen Jahr zusammen:<br><br>• <b>Aktive RAP</b>: Vorausbezahlte Ausgaben (z. B. Miete Jan. schon im Dez. gezahlt)<br>• <b>Passive RAP</b>: Vorauserhaltene Einnahmen (z. B. Vorauszahlung für nächstes Jahr)<br><br>Ziel: Einnahmen/Ausgaben dem richtigen Jahr zuordnen.',
+      formula:'RAP = periodengerechte Abgrenzung' },
+  ],
+  onComplete: () => { notify('📆 Rechnungsabgrenzung verstanden!'); G.badges.push('📆 Rechnungsabgrenzung'); }
+},
+// ─── 31: Kapitel 32 ───
+{
+  title: 'Kapitel 32: Vom Stand zum Konzern',
+  badge: '🏆 Geschafft!',
+  steps: [
+    { type:'dialog', speaker:'mimi', text:'Erinnerst du dich noch, Max? Wir haben mit 10 Gläsern Limonade angefangen.' },
+    { type:'dialog', speaker:'max', text:'Und jetzt haben wir Straßenstände, Filialen, Franchise-Partner – und eine echte GmbH!' },
+    { type:'dialog', speaker:'mama', text:'Und alles begann mit einer einfachen Erkenntnis...' },
+    { type:'dialog', speaker:'mimi', text:'Umsatz ist nicht Gewinn. 🍋' },
+    { type:'learn', icon:'🏆', title:'Du hast es geschafft!', content:'Du hast gemeinsam mit Mimi und Max gelernt:<br>• Umsatz, Gewinn, Kosten<br>• Kalkulation & Preisgestaltung<br>• Doppelte Buchführung<br>• Bilanz & GuV<br>• Personalverrechnung<br>• Steuern & Controlling<br>• Und vieles mehr!<br><br>Du bist jetzt bereit für die echte Unternehmerwelt. 🎉',
+      formula:'Du + Wissen = Erfolg 🚀' },
+  ],
+  onComplete: () => {
+    notify('🏆 Spiel abgeschlossen! Herzlichen Glückwunsch!');
+    G.badges.push('🏆 Limonaden-Unternehmer');
+  }
+},
+];
+
+// ═══════════════════════════════════════════════
+// CHAPTER LIST RENDERING
+// ═══════════════════════════════════════════════
+function buildChapterList() {
+  const container = document.getElementById('chapter-list');
+  container.innerHTML = '';
+  PARTS.forEach(part => {
+    const ph = document.createElement('div');
+    ph.className = 'part-header';
+    ph.textContent = part.title;
+    container.appendChild(ph);
+    part.chapters.forEach(ci => {
+      const ch = CHAPTERS[ci];
+      const div = document.createElement('div');
+      const done = G.completedChapters.includes(ci);
+      const active = G.currentChapter === ci;
+      const locked = ci > 0 && !G.completedChapters.includes(ci - 1) && ci !== G.currentChapter;
+      div.className = 'ch-item' + (active ? ' active' : '') + (done ? ' done' : '') + (locked ? ' locked' : '');
+      div.textContent = (ci + 1) + '. ' + ch.title.replace('Kapitel ' + (ci+1) + ': ', '');
+      if (!locked) div.onclick = () => goToChapter(ci);
+      container.appendChild(div);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════
+// STORY RENDERING
+// ═══════════════════════════════════════════════
+function renderStory() {
+  const ch = CHAPTERS[G.currentChapter];
+  const step = ch.steps[G.storyStep];
+  const view = document.getElementById('view-story');
+  view.innerHTML = '';
+
+  // Header
+  const hdr = document.createElement('div');
+  hdr.className = 'story-header';
+  hdr.innerHTML = `<span class="ch-badge">Kapitel ${G.currentChapter + 1}</span><h2>${ch.title}</h2>`;
+  view.appendChild(hdr);
+
+  // Progress dots
+  const dots = document.createElement('div');
+  dots.className = 'flex-row';
+  ch.steps.forEach((s, i) => {
+    const d = document.createElement('div');
+    d.style.cssText = `width:8px;height:8px;border-radius:50%;background:${i < G.storyStep ? 'var(--green)' : i === G.storyStep ? 'var(--accent)' : 'var(--border)'}`;
+    dots.appendChild(d);
+  });
+  view.appendChild(dots);
+
+  if (!step) {
+    renderChapterComplete(view);
+    return;
+  }
+
+  if (step.type === 'dialog') renderDialog(view, step);
+  else if (step.type === 'choice') renderChoice(view, step);
+  else if (step.type === 'learn') renderLearn(view, step);
+  else if (step.type === 'result') renderResult(view, step);
+}
+
+function renderDialog(view, step) {
+  const box = document.createElement('div');
+  box.className = 'dialog-box';
+  const avatars = { mimi: '👧 Mimi', max: '🧒 Max', mama: '👩 Mama', narrator: '📖' };
+  const avatar = avatars[step.speaker] || step.speaker;
+  box.innerHTML = `<div class="speaker ${step.speaker}">${avatar}</div><p>${step.text}</p>`;
+  view.appendChild(box);
+  addNextBtn(view);
+}
+
+function renderChoice(view, step) {
+  const box = document.createElement('div');
+  box.className = 'dialog-box';
+  box.innerHTML = `<div class="speaker">❓ Deine Entscheidung</div><p><strong>${step.question}</strong></p>`;
+  view.appendChild(box);
+
+  const choices = document.createElement('div');
+  choices.className = 'choices';
+  step.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = opt.text;
+    btn.onclick = () => makeChoice(btn, opt, choices);
+    choices.appendChild(btn);
+  });
+  view.appendChild(choices);
+}
+
+function makeChoice(btn, opt, container) {
+  if (G.choiceMade) return;
+  G.choiceMade = opt;
+  Array.from(container.children).forEach(b => b.onclick = null);
+  btn.className = 'choice-btn ' + (opt.correct ? 'selected' : 'wrong');
+
+  const fb = document.createElement('div');
+  fb.className = 'dialog-box';
+  fb.style.borderLeftColor = opt.correct ? 'var(--green)' : 'var(--red)';
+  fb.innerHTML = `<div class="speaker">${opt.correct ? '✅' : '💡'} ${opt.correct ? 'Richtig!' : 'Fast!'}</div><p>${opt.feedback}</p>`;
+  container.parentElement.appendChild(fb);
+
+  if (opt.correct) notify('✅ Richtig!', '');
+  else notify('💡 ' + opt.feedback, 'warn');
+
+  addNextBtn(container.parentElement);
+}
+
+function renderLearn(view, step) {
+  const card = document.createElement('div');
+  card.className = 'learn-card';
+  card.innerHTML = `
+    <div class="learn-icon">${step.icon}</div>
+    <h3>${step.title}</h3>
+    <p>${step.content}</p>
+    ${step.formula ? `<div class="formula">${step.formula}</div>` : ''}
+  `;
+  view.appendChild(card);
+  addNextBtn(view);
+}
+
+function renderResult(view, step) {
+  const box = document.createElement('div');
+  box.className = 'result-box';
+  let html = `<h4>📊 ${step.title}</h4><table>`;
+  step.rows.forEach(row => {
+    const style = row[1] === '' ? 'style="color:var(--muted);font-weight:600;padding-top:0.6rem;"' : '';
+    html += `<tr ${style}><td>${row[0]}</td><td>${row[1]}</td></tr>`;
+  });
+  if (step.total) html += `<tr class="total"><td>${step.total[0]}</td><td>${step.total[1]}</td></tr>`;
+  html += '</table>';
+  if (step.note) html += `<p style="margin-top:0.6rem;font-size:0.85rem;color:var(--muted);">${step.note}</p>`;
+  box.innerHTML = html;
+  view.appendChild(box);
+  addNextBtn(view);
+}
+
+function renderChapterComplete(view) {
+  const ch = CHAPTERS[G.currentChapter];
+  const pct = Math.round(((G.currentChapter + 1) / 32) * 100);
+  const box = document.createElement('div');
+  box.className = 'chapter-complete';
+  box.innerHTML = `
+    <div class="big-icon">⭐</div>
+    <h3>Kapitel abgeschlossen!</h3>
+    <p>${ch.badge} gemeistert!</p>
+    <div class="xp-bar"><div class="xp-fill" style="width:0%" id="xp-fill"></div></div>
+    <p style="font-size:0.8rem;color:var(--muted);">Gesamtfortschritt: ${pct} %</p>
+    ${G.currentChapter < 31 ? `<button class="btn btn-small" onclick="nextChapter()" style="margin-top:1rem">Nächstes Kapitel →</button>` : `<button class="btn btn-small" onclick="showTitle()" style="margin-top:1rem">🏠 Zum Anfang</button>`}
+  `;
+  view.appendChild(box);
+  setTimeout(() => {
+    const fill = document.getElementById('xp-fill');
+    if (fill) fill.style.width = pct + '%';
+  }, 100);
+}
+
+function addNextBtn(view) {
+  const btn = document.createElement('button');
+  btn.className = 'btn btn-small btn-next';
+  btn.textContent = 'Weiter →';
+  btn.onclick = advanceStory;
+  view.appendChild(btn);
+}
+
+function advanceStory() {
+  G.storyStep++;
+  G.choiceMade = null;
+  const ch = CHAPTERS[G.currentChapter];
+  if (G.storyStep >= ch.steps.length) {
+    if (!G.completedChapters.includes(G.currentChapter)) {
+      G.completedChapters.push(G.currentChapter);
+      if (ch.onComplete) ch.onComplete();
+    }
+    buildChapterList();
+    updateKPIs();
+  }
+  renderStory();
+}
+
+function nextChapter() {
+  if (G.currentChapter < 31) {
+    G.currentChapter++;
+    G.storyStep = 0;
+    G.choiceMade = null;
+    buildChapterList();
+    updateKPIs();
+    renderStory();
+    switchTab('story');
+  }
+}
+
+function goToChapter(idx) {
+  G.currentChapter = idx;
+  G.storyStep = 0;
+  G.choiceMade = null;
+  buildChapterList();
+  updateKPIs();
+  renderStory();
+  switchTab('story');
+}
+
+// ═══════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════
+function renderDashboard() {
+  const view = document.getElementById('view-dashboard');
+  view.innerHTML = `
+    <div class="dash-card">
+      <h4>💰 Finanzen</h4>
+      <div class="dash-stat"><span>Kassa</span><span class="val">${fmt(Math.max(0,G.kassa))}</span></div>
+      <div class="dash-stat"><span>Bank</span><span class="val">${fmt(G.bank)}</span></div>
+      <div class="dash-stat"><span>Umsatz gesamt</span><span class="val yellow">${fmt(G.umsatz)}</span></div>
+      <div class="dash-stat"><span>Gewinn gesamt</span><span class="val ${G.gewinn < 0 ? 'red' : ''}">${fmt(G.gewinn)}</span></div>
+    </div>
+    <div class="dash-card">
+      <h4>📋 Verbindlichkeiten & Forderungen</h4>
+      <div class="dash-stat"><span>Forderungen</span><span class="val">${fmt(G.forderungen)}</span></div>
+      <div class="dash-stat"><span>Verbindlichkeiten</span><span class="val red">${fmt(G.verbindlichkeiten)}</span></div>
+      ${G.kredite.map(k => `<div class="dash-stat"><span>Kredit: ${k.name}</span><span class="val red">${fmt(k.betrag)}</span></div>`).join('')}
+    </div>
+    <div class="dash-card">
+      <h4>👥 Personal</h4>
+      ${G.mitarbeiter.length === 0 ? '<p style="color:var(--muted);font-size:0.85rem">Noch keine Mitarbeiter</p>' : G.mitarbeiter.map(m => `<div class="dash-stat"><span>${m.name}</span><span class="val">${fmt(m.brutto)} brutto</span></div>`).join('')}
+    </div>
+    <div class="dash-card">
+      <h4>🏭 Anlagevermögen</h4>
+      ${G.anlagen.length === 0 ? '<p style="color:var(--muted);font-size:0.85rem">Noch keine Anlagen</p>' : G.anlagen.map(a => `<div class="dash-stat"><span>${a.name}</span><span class="val">${fmt(a.wert)}</span></div><div class="dash-stat"><span>AfA/Jahr</span><span class="val red">${fmt(a.afa)}</span></div>`).join('')}
+    </div>
+    <div class="dash-card" style="grid-column:1/-1">
+      <h4>🏅 Errungenschaften</h4>
+      <div class="flex-row">${G.badges.length === 0 ? '<span style="color:var(--muted);font-size:0.85rem">Noch keine Errungenschaften</span>' : G.badges.map(b => `<span class="badge unlocked">${b}</span>`).join('')}</div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════
+// BUCHHALTUNG
+// ═══════════════════════════════════════════════
+function renderBuchh() {
+  const view = document.getElementById('view-buchh');
+  let rows = G.buchungen.map(b => `
+    <tr>
+      <td>${b.datum}</td>
+      <td>${b.text}</td>
+      <td><span class="tag ${b.art}">${b.art === 'einnahme' ? 'Einnahme' : 'Ausgabe'}</span></td>
+      <td class="${b.betrag > 0 ? 'debit' : 'credit'}">${b.betrag > 0 ? '+' : ''}${fmt(b.betrag)}</td>
+    </tr>
+  `).join('');
+  if (!rows) rows = '<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:1rem">Noch keine Buchungen</td></tr>';
+  view.innerHTML = `
+    <h2 class="section-title">📒 Buchungsjournal</h2>
+    <table class="buchh-table">
+      <thead><tr><th>Datum</th><th>Beschreibung</th><th>Art</th><th>Betrag</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+// ═══════════════════════════════════════════════
+// LAGER
+// ═══════════════════════════════════════════════
+function renderLager() {
+  const view = document.getElementById('view-lager');
+  view.innerHTML = `
+    <div class="lager-item"><div class="icon">🍋</div><div class="name">Zitronen</div><div class="qty">${G.lager.zitronen}</div><div class="unit">Stück</div></div>
+    <div class="lager-item"><div class="icon">🍬</div><div class="name">Zucker</div><div class="qty">${G.lager.zucker}</div><div class="unit">kg</div></div>
+    <div class="lager-item"><div class="icon">🍹</div><div class="name">Fertige Limos</div><div class="qty">${G.lager.limo}</div><div class="unit">Gläser</div></div>
+    ${G.anlagen.map(a => `<div class="lager-item"><div class="icon">🧊</div><div class="name">${a.name}</div><div class="qty">${fmt(a.wert)}</div><div class="unit">Restwert</div></div>`).join('')}
+  `;
+}
+
+// ═══════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const tabs = ['story','dashboard','buchh','lager'];
+    t.className = 'tab' + (tabs[i] === tab ? ' active' : '');
+  });
+  ['story','dashboard','buchh','lager'].forEach(v => {
+    document.getElementById('view-' + v).style.display = v === tab ? (v === 'dashboard' ? 'grid' : v === 'lager' ? 'grid' : 'flex') : 'none';
+  });
+  if (tab === 'dashboard') renderDashboard();
+  else if (tab === 'buchh') renderBuchh();
+  else if (tab === 'lager') renderLager();
+}
+
+// ═══════════════════════════════════════════════
+// SCREEN TRANSITIONS
+// ═══════════════════════════════════════════════
+function startGame() {
+  document.getElementById('screen-title').classList.remove('active');
+  document.getElementById('screen-game').classList.add('active');
+  buildChapterList();
+  updateKPIs();
+  renderStory();
+}
+
+function showTitle() {
+  document.getElementById('screen-game').classList.remove('active');
+  document.getElementById('screen-title').classList.add('active');
+}
+</script>
+</body>
+</html>
